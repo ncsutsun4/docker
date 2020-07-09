@@ -7,4 +7,43 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(plumber)
+
 ```
+
+
+```{r make_model.R }
+# load the dataset
+dataset <- iris
+# create the model
+model <- lm(Petal.Length ~ Petal.Width, data = dataset)
+
+
+# example: run the model once
+input_data <- data.frame(Petal.Width=1)
+predict(model,input_data)
+
+```
+
+
+```{r rest_controller.R}
+# make the model
+source("make_model.R")
+#* @get /predict_petal_length
+get_predict_length <- function(petal_width){
+    # convert the input to a number
+    petal_width <- as.numeric(petal_width)
+    # create the prediction data frame
+    input_data <- data.frame(Petal.Width=as.numeric(petal_width))
+    # create the prediction
+    predict(model,input_data)
+}
+```
+
+
+```{r Main.R}
+r <- plumb("rest_controller.R")
+r$run(port=80, host="0.0.0.0")
+
+```
+
